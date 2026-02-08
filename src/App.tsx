@@ -75,7 +75,7 @@ export interface Scores {
     default: number;
     reputational: number;
     operational: number;
-    litigationPercentage: 2
+    litigationPercentage: 2,
 
   };
 
