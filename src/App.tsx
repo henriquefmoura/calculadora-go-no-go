@@ -133,11 +133,20 @@ export default function App() {
       cac: 500
     },
     risk: {
-      legal: 50,
-      default: 50,
-      reputational: 50,
-      operational: 50,
-      litigationPercentage: 0
+     <div className="lg:col-span-1">
+  <label className="block text-sm text-gray-700 mb-1.5">
+    Possui risco relevante?
+  </label>
+
+  <select
+    value={data.hasRisk ? "sim" : "nao"}
+    onChange={(e) => updateField("hasRisk", e.target.value === "sim")}
+    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00834c] focus:border-[#00834c]"
+  >
+    <option value="nao">Não</option>
+    <option value="sim">Sim</option>
+  </select>
+</div>
     },
   
   });
