@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Go/No-Go - Leroy Merlin Instalações e Reformas</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+        }
+        
+        .glow-positive {
+            animation: glow 1s ease-in-out;
+        }
+        
+        @keyframes glow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; transform: scale(1.05); }
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #00834c;
+            ring: 2px solid #00834c;
+        }
+    </style>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'leroy-green': '#00834c',
+                        'leroy-orange': '#ff6900',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen">
+    <div id="app" class="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+        <!-- Header -->
+        <header class="glass-card rounded-lg shadow-md border border-white/20 p-6 backdrop-blur-md">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Calculadora Go/No-Go</h1>
+                    <p class="text-sm text-gray-600">Análise de Parcerias com Incorporadoras - Leroy Merlin Instalações e Reformas</p>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="calcularResultado()" class="px-6 py-2.5 bg-leroy-green hover:bg-green-700 text-white rounded-lg font-medium transition-colors">
+                        Calcular
+                    </button>
+                    <button onclick="salvarAnalise()" class="px-6 py-2.5 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors">
+                        Salvar
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dados do Projeto -->
+        <section class="glass-card rounded-lg shadow-md border border-white/20 p-6 backdrop-blur-md">
+            <h2 class="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+                <i data-lucide="building-2" class="w-5 h-5 text-leroy-green"></i>
+                Dados do Empreendimento
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm text-gray-700 mb-1">Nome do Empreendimento</label>
+                    <input type="text" id="projectName" placeholder="Ex: Residencial Vista Verde" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-700 mb-1">Incorporadora</label>
+                    <input type="text" id="incorporadora" placeholder="Ex: ABC Construtora" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-700 mb-1">Cidade/UF</label>
+                    <input type="text" id="city" placeholder="Ex: São Paulo/SP" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-700 mb-1">VGV Estimado</label>
+                    <input type="text" id="vgv" placeholder="R$ 0" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                </div>
+            </div>
+        </section>
+
+        <!-- Mix de Empreendimento -->
+        <section class="glass-card rounded-lg shadow-md border border-white/20 p-6 backdrop-blur-md">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-medium text-gray-900 flex items-center gap-2">
+                    <i data-lucide="building" class="w-5 h-5 text-leroy-green"></i>
+                    Mix de Empreendimento e Projeção de LTV
+                </h2>
+                <button onclick="adicionarTipologia()" class="px-4 py-2 bg-leroy-green hover:bg-green-700 text-white rounded-lg text-sm font-medium flex items-center gap-2">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    Adicionar Tipologia
+                </button>
+            </div>
+            
+            <div id="tipologiasContainer" class="mb-4"></div>
+            
+            <div id="totalMix" class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4"></div>
+        </section>
+
+        <!-- Dashboard de LTV -->
+        <section id="ltvDashboard" class="glass-card rounded-lg shadow-lg border-2 border-leroy-green/30 p-6 backdrop-blur-md bg-gradient-to-br from-leroy-green/5 to-leroy-green/10" style="display:none;">
+            <h2 class="text-xl font-medium text-gray-900 mb-5 flex items-center gap-2">
+                <i data-lucide="target" class="w-6 h-6 text-leroy-green"></i>
+                Dashboard de LTV por Cliente
+            </h2>
+            <div id="ltvContent"></div>
+        </section>
+
+        <!-- Parâmetros de Engenharia -->
+        <section class="glass-card rounded-lg shadow-md border border-white/20 p-6 backdrop-blur-md">
+            <div class="flex justify-between items-center mb-5">
+                <h2 class="text-lg font-medium text-gray-900 flex items-center gap-2">
+                    <i data-lucide="settings" class="w-5 h-5 text-leroy-green"></i>
+                    Parâmetros de Engenharia e Escala
+                </h2>
+                <div id="eficienciaBadge" style="display:none;" class="px-3 py-1.5 bg-leroy-green text-white rounded-lg text-sm font-medium flex items-center gap-1.5">
+                    <i data-lucide="badge-check" class="w-4 h-4"></i>
+                    Eficiência Máxima
+                </div>
+            </div>
+            <div class="mb-6">
+                <label class="block text-sm text-gray-700 mb-2">Capacidade de Produção Mensal (Unidades/Mês)</label>
+                <input type="number" id="capacidadeMensal" placeholder="Ex: 25" onchange="calcularEngenharia()" class="w-64 px-4 py-2.5 border border-gray-300 rounded-lg text-sm">
+                <p class="text-xs text-gray-500 mt-1.5">Número de unidades que podem ser executadas simultaneamente por mês</p>
+            </div>
+            <div id="engenhariaResultado"></div>
+        </section>
+
+        <!-- Pacotes de Reforma -->
+        <section class="glass-card rounded-lg shadow-md border border-white/20 p-6 backdrop-blur-md">
+            <h2 class="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+                <i data-lucide="home" class="w-5 h-5 text-leroy-orange"></i>
+                Pacotes de Reforma
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div class="glass-card rounded-lg p-4">
+                    <h4 class="text-sm text-gray-900 mb-3">Banheiro</h4>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs text-gray-600 mb-1">Tipo</label>
+                            <select id="bathroomType" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                                <option value="completo">Reforma Completa</option>
+                                <option value="parcial">Reforma Parcial</option>
+                                <option value="unitario">Serviço Unitário</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-600 mb-1">Valor (R$)</label>
+                            <input type="number" id="bathroomValue" value="18000" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-600 mb-1">Adesão (%)</label>
+                            <input type="number" id="bathroomAdhesion" value="35" min="0" max="100" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="glass-card rounded-lg p-4">
+                    <h4 class="text-sm text-gray-900 mb-3">Cozinha</h4>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs text-gray-600 mb-1">Tipo</label>
+                            <select id="kitchenType" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                                <option value="completo">Reforma Completa</option>
+                                <option value="parcial">Reforma Parcial</option>
+                                <option value="unitario">Serviço Unitário</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-600 mb-1">Valor (R$)</label>
+                            <input type="number" id="kitchenValue" value="32000" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-600 mb-1">Adesão (%)</label>
+                            <input type="number" id="kitchenAdhesion" value="25" min="0" max="100" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="glass-card rounded-lg p-4">
+                    <h4 class="text-sm text-gray-900 mb-3">Sala</h4>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs text-gray-600 mb-1">Tipo</label>
+                            <select id="livingRoomType" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                                <option value="completo">Reforma Completa</option>
+                                <option value="parcial" selected>Reforma Parcial</option>
+                                <option value="unitario">Serviço Unitário</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-600 mb-1">Valor (R$)</label>
+                            <input type="number" id="livingRoomValue" value="15000" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-600 mb-1">Adesão (%)</label>
+                            <input type="number" id="livingRoomAdhesion" value="30" min="0" max="100" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="glass-card rounded-lg p-4">
+                    <h4 class="text-sm text-gray-900 mb-3">Quarto</h4>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs text-gray-600 mb-1">Tipo</label>
+                            <select id="bedroomType" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                                <option value="completo">Reforma Completa</option>
+                                <option value="parcial" selected>Reforma Parcial</option>
+                                <option value="unitario">Serviço Unitário</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-600 mb-1">Valor (R$)</label>
+                            <input type="number" id="bedroomValue" value="14000" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-600 mb-1">Adesão (%)</label>
+                            <input type="number" id="bedroomAdhesion" value="40" min="0" max="100" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="receitaPacotes" class="bg-gradient-to-r from-leroy-green/10 to-leroy-green/5 border-l-4 border-leroy-green rounded-r-lg p-4"></div>
+        </section>
+
+        <!-- Modelo Comercial -->
+        <section class="glass-card rounded-lg shadow-md border border-white/20 p-6 backdrop-blur-md">
+            <h2 class="text-lg font-medium text-gray-900 mb-5 flex items-center gap-2">
+                <i data-lucide="handshake" class="w-5 h-5 text-leroy-green"></i>
+                Modelo Comercial com a Construtora
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <h3 class="text-sm text-gray-900 mb-3">Comissão à Construtora</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs text-gray-600 mb-1.5">Tipo de Comissão</label>
+                            <select id="commissionType" onchange="calcularComissao()" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                                <option value="percentage">Percentual da Receita</option>
+                                <option value="fixed">Valor Fixo por Unidade</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-600 mb-1.5">Valor</label>
+                            <input type="number" id="commissionValue" value="0" onchange="calcularComissao()" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-sm text-gray-900 mb-3">Incentivos e Contrapartidas</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs text-gray-600 mb-1.5">Incentivos Oferecidos</label>
+                            <textarea id="incentives" rows="2" placeholder="Ex: Bonificação por volume, material promocional..." class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-600 mb-1.5">Contrapartidas Exigidas</label>
+                            <textarea id="counterparties" rows="2" placeholder="Ex: Exclusividade, espaço no plantão..." class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="resultadoComercial" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+        </section>
+
+        <!-- Viabilidade Financeira -->
+        <section class="glass-card rounded-lg shadow-md border border-white/20 p-6 backdrop-blur-md">
+            <h2 class="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+                <i data-lucide="dollar-sign" class="w-5 h-5 text-leroy-green"></i>
+                Viabilidade Financeira
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm text-gray-700 mb-2">Margem Estimada (%)</label>
+                    <input type="number" id="margin" value="7.5" step="0.5" min="0" max="15" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-700 mb-2">Ticket Médio (R$)</label>
+                    <input type="number" id="ticket" value="20000" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-700 mb-2">Payback (meses)</label>
+                    <input type="number" id="payback" value="12" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                </div>
+            </div>
+        </section>
+
+        <!-- Resultado -->
+        <section id="resultadoSection" style="display:none;" class="glass-card rounded-lg shadow-xl border border-white/20 p-8 backdrop-blur-md">
+            <h2 class="text-xl text-gray-900 mb-6">Resultado da Decisão</h2>
+            <div id="resultadoContent"></div>
+        </section>
+    </div>
+
+    <script>
+        // Estado Global
+        let tipologias = [];
+        let tipologiaIdCounter = 0;
+        
+        // Inicializar Lucide Icons
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+            calcularReceitaPacotes();
+            calcularComissao();
+        });
+
+        // Formatar moeda
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('pt-BR', { 
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(value);
+        }
+
+        // Adicionar Tipologia
+        function adicionarTipologia() {
+            const id = tipologiaIdCounter++;
+            tipologias.push({
+                id: id,
+                tipo: '',
+                metragem: 0,
+                quantidade: 0,
+                precoVenda: 0
+            });
+            renderTipologias();
+        }
+
+        // Remover Tipologia
+        function removerTipologia(id) {
+            tipologias = tipologias.filter(t => t.id !== id);
+            renderTipologias();
+        }
+
+        // Atualizar Tipologia
+        function atualizarTipologia(id, field, value) {
+            const tipologia = tipologias.find(t => t.id === id);
+            if (tipologia) {
+                tipologia[field] = field === 'tipo' ? value : parseFloat(value) || 0;
+                calcularTotaisMix();
+                calcularLTV();
+                calcularEngenharia();
+            }
+        }
+
+        // Renderizar Tipologias
+        function renderTipologias() {
+            const container = document.getElementById('tipologiasContainer');
+            
+            if (tipologias.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                        <i data-lucide="building-2" class="w-12 h-12 text-gray-400 mx-auto mb-3"></i>
+                        <p class="text-gray-600 text-sm mb-2">Nenhuma tipologia cadastrada</p>
+                        <p class="text-gray-500 text-xs">Clique em "Adicionar Tipologia" para começar</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                calcularTotaisMix();
+                return;
+            }
+
+            let html = '<div class="overflow-x-auto"><table class="w-full"><thead><tr class="border-b border-gray-200">';
+            html += '<th class="text-left text-xs font-medium text-gray-700 pb-3 pr-4">Tipologia</th>';
+            html += '<th class="text-right text-xs font-medium text-gray-700 pb-3 px-4">Metragem (m²)</th>';
+            html += '<th class="text-right text-xs font-medium text-gray-700 pb-3 px-4">Quantidade</th>';
+            html += '<th class="text-right text-xs font-medium text-gray-700 pb-3 px-4">Preço de Venda</th>';
+            html += '<th class="text-right text-xs font-medium text-gray-700 pb-3 px-4">VGV Tipologia</th>';
+            html += '<th class="text-right text-xs font-medium text-gray-700 pb-3 px-4">Potencial Leroy</th>';
+            html += '<th class="text-center text-xs font-medium text-gray-700 pb-3 pl-4">Ações</th>';
+            html += '</tr></thead><tbody>';
+
+            tipologias.forEach(tip => {
+                const potencial = tip.metragem * 1200 * tip.quantidade;
+                const vgv = tip.precoVenda * tip.quantidade;
+                
+                html += `<tr class="border-b border-gray-100">
+                    <td class="py-3 pr-4">
+                        <input type="text" value="${tip.tipo}" onchange="atualizarTipologia(${tip.id}, 'tipo', this.value)" 
+                               placeholder="Ex: 2 dorms" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                    </td>
+                    <td class="py-3 px-4">
+                        <input type="number" value="${tip.metragem || ''}" onchange="atualizarTipologia(${tip.id}, 'metragem', this.value)" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-right">
+                    </td>
+                    <td class="py-3 px-4">
+                        <input type="number" value="${tip.quantidade || ''}" onchange="atualizarTipologia(${tip.id}, 'quantidade', this.value)" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-right">
+                    </td>
+                    <td class="py-3 px-4">
+                        <input type="number" value="${tip.precoVenda || ''}" onchange="atualizarTipologia(${tip.id}, 'precoVenda', this.value)" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-right">
+                    </td>
+                    <td class="py-3 px-4 text-right text-sm text-gray-700">
+                        R$ ${formatCurrency(vgv)}
+                    </td>
+                    <td class="py-3 px-4 text-right text-sm text-leroy-green font-medium">
+                        R$ ${formatCurrency(potencial)}
+                    </td>
+                    <td class="py-3 pl-4 text-center">
+                        <button onclick="removerTipologia(${tip.id})" class="p-2 text-red-600 hover:bg-red-50 rounded-lg">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </td>
+                </tr>`;
+            });
+
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+            lucide.createIcons();
+            calcularTotaisMix();
+        }
+
+        // Calcular Totais do Mix
+        function calcularTotaisMix() {
+            const totalUnidades = tipologias.reduce((sum, t) => sum + t.quantidade, 0);
+            const totalVGV = tipologias.reduce((sum, t) => sum + (t.precoVenda * t.quantidade), 0);
+            const totalPotencial = tipologias.reduce((sum, t) => sum + (t.metragem * 1200 * t.quantidade), 0);
+
+            const html = `
+                <div class="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-4">
+                    <div class="text-xs text-blue-700 mb-1">Total de Unidades</div>
+                    <div class="text-2xl text-blue-900 font-medium">${totalUnidades}</div>
+                </div>
+                <div class="bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-lg p-4">
+                    <div class="text-xs text-gray-600 mb-1">VGV Total do Empreendimento</div>
+                    <div class="text-2xl text-gray-900 font-medium">R$ ${formatCurrency(totalVGV)}</div>
+                </div>
+                <div class="bg-gradient-to-r from-leroy-green/10 to-leroy-green/5 border border-leroy-green/30 rounded-lg p-4">
+                    <div class="text-xs text-leroy-green mb-1">Potencial Total Leroy Merlin</div>
+                    <div class="text-2xl text-leroy-green font-medium">R$ ${formatCurrency(totalPotencial)}</div>
+                    ${totalVGV > 0 ? `<div class="text-xs text-gray-600 mt-1">${((totalPotencial / totalVGV) * 100).toFixed(1)}% do VGV</div>` : ''}
+                </div>
+            `;
+
+            document.getElementById('totalMix').innerHTML = html;
+            calcularLTV();
+        }
+
+        // Calcular LTV
+        function calcularLTV() {
+            const totalUnidades = tipologias.reduce((sum, t) => sum + t.quantidade, 0);
+            const potencialCaptura = tipologias.reduce((sum, t) => sum + (t.metragem * 1200 * t.quantidade), 0);
+            
+            if (totalUnidades === 0) {
+                document.getElementById('ltvDashboard').style.display = 'none';
+                return;
+            }
+
+            const margin = parseFloat(document.getElementById('margin').value) || 7.5;
+            const potencialPorUnidade = potencialCaptura / totalUnidades;
+            const margemInicial = potencialPorUnidade * (margin / 100);
+            const crossSellAnual = potencialPorUnidade * 0.15;
+            const crossSellTotal = crossSellAnual * 3;
+            const ltvPorCliente = margemInicial + crossSellTotal;
+            const ltvTotal = ltvPorCliente * totalUnidades;
+
+            const html = `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="bg-white/80 backdrop-blur-sm rounded-lg p-5 border border-leroy-green/20">
+                        <div class="text-xs text-gray-600 mb-2">Margem Serviço Inicial</div>
+                        <div class="text-3xl text-blue-900 font-bold mb-2">R$ ${formatCurrency(margemInicial)}</div>
+                        <div class="text-xs text-gray-600">Base: R$ ${formatCurrency(potencialPorUnidade)} × ${margin}%</div>
+                    </div>
+                    <div class="bg-white/80 backdrop-blur-sm rounded-lg p-5 border border-leroy-orange/20">
+                        <div class="text-xs text-gray-600 mb-2">Cross-sell 3 Anos</div>
+                        <div class="text-3xl text-leroy-orange font-bold mb-2">R$ ${formatCurrency(crossSellTotal)}</div>
+                        <div class="text-xs text-gray-600">15% recorrente/ano em decoração</div>
+                    </div>
+                    <div class="bg-white/80 backdrop-blur-sm rounded-lg p-5 border-2 border-leroy-green">
+                        <div class="text-xs text-leroy-green font-medium mb-2">LTV Estimado por Cliente</div>
+                        <div class="text-4xl text-leroy-green font-bold mb-2">R$ ${formatCurrency(ltvPorCliente)}</div>
+                        <div class="text-xs text-gray-600">Margem + 3 anos recorrência</div>
+                    </div>
+                </div>
+                <div class="bg-leroy-green text-white rounded-lg p-4">
+                    <div class="text-xs mb-1 opacity-90">LTV Total do Empreendimento</div>
+                    <div class="text-2xl font-bold">R$ ${formatCurrency(ltvTotal)}</div>
+                    <div class="text-xs mt-1 opacity-90">Margem + Cross-sell de ${totalUnidades} clientes</div>
+                </div>
+            `;
+
+            document.getElementById('ltvContent').innerHTML = html;
+            document.getElementById('ltvDashboard').style.display = 'block';
+        }
+
+        // Calcular Engenharia
+        function calcularEngenharia() {
+            const capacidade = parseFloat(document.getElementById('capacidadeMensal').value) || 0;
+            const totalUnidades = tipologias.reduce((sum, t) => sum + t.quantidade, 0);
+            
+            if (capacidade === 0 || totalUnidades === 0) {
+                document.getElementById('engenhariaResultado').innerHTML = '';
+                document.getElementById('eficienciaBadge').style.display = 'none';
+                return;
+            }
+
+            const cronograma = Math.ceil(totalUnidades / capacidade);
+            const custo = totalUnidades * 2500;
+            const eficiente = cronograma < 12;
+
+            document.getElementById('eficienciaBadge').style.display = eficiente ? 'flex' : 'none';
+
+            let html = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-5">
+                        <div class="text-sm text-blue-900 font-medium mb-3">Cronograma Total de Entrega</div>
+                        <div class="text-4xl text-blue-900 font-bold mb-2">
+                            ${cronograma} <span class="text-lg font-normal">meses</span>
+                        </div>
+                        <div class="text-xs text-blue-700 mt-2">${totalUnidades} unidades ÷ ${capacidade} un/mês</div>
+                    </div>
+                    <div class="bg-gradient-to-br from-leroy-green/10 to-leroy-green/5 border border-leroy-green/30 rounded-lg p-5">
+                        <div class="text-sm text-leroy-green font-medium mb-3">Custo Operacional Otimizado</div>
+                        <div class="text-4xl text-leroy-green font-bold mb-2">R$ ${formatCurrency(custo)}</div>
+                        <div class="text-xs text-gray-600 mt-2">R$ 2.500 × ${totalUnidades} unidades</div>
+                    </div>
+                </div>
+                <div class="pt-4 border-t border-gray-200">
+                    <p class="text-xs text-[#666666] leading-relaxed">
+                        <strong>Capacidade Operacional & Escalabilidade:</strong> Indicador técnico baseado na produtividade 
+                        da engenharia e disponibilidade de squads de instalação. Este cálculo considera a capacidade mensal 
+                        informada para dimensionar o cronograma de entrega e os custos operacionais do projeto.
+                    </p>
+                </div>
+            `;
+
+            document.getElementById('engenhariaResultado').innerHTML = html;
+        }
+
+        // Calcular Receita de Pacotes
+        function calcularReceitaPacotes() {
+            const totalUnidades = tipologias.reduce((sum, t) => sum + t.quantidade, 0);
+            
+            const bathroom = parseFloat(document.getElementById('bathroomValue').value) * parseFloat(document.getElementById('bathroomAdhesion').value) / 100;
+            const kitchen = parseFloat(document.getElementById('kitchenValue').value) * parseFloat(document.getElementById('kitchenAdhesion').value) / 100;
+            const living = parseFloat(document.getElementById('livingRoomValue').value) * parseFloat(document.getElementById('livingRoomAdhesion').value) / 100;
+            const bedroom = parseFloat(document.getElementById('bedroomValue').value) * parseFloat(document.getElementById('bedroomAdhesion').value) / 100;
+            
+            const receitaTotal = (bathroom + kitchen + living + bedroom) * totalUnidades;
+
+            const html = `
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-900 mb-1">Receita Potencial Total do Empreendimento</p>
+                        <p class="text-xs text-gray-600">Baseado em ${totalUnidades} unidades</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-3xl text-leroy-green">R$ ${formatCurrency(receitaTotal)}</div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('receitaPacotes').innerHTML = html;
+            calcularComissao();
+        }
+
+        // Calcular Comissão
+        function calcularComissao() {
+            const totalUnidades = tipologias.reduce((sum, t) => sum + t.quantidade, 0);
+            const bathroom = parseFloat(document.getElementById('bathroomValue').value) * parseFloat(document.getElementById('bathroomAdhesion').value) / 100;
+            const kitchen = parseFloat(document.getElementById('kitchenValue').value) * parseFloat(document.getElementById('kitchenAdhesion').value) / 100;
+            const living = parseFloat(document.getElementById('livingRoomValue').value) * parseFloat(document.getElementById('livingRoomAdhesion').value) / 100;
+            const bedroom = parseFloat(document.getElementById('bedroomValue').value) * parseFloat(document.getElementById('bedroomAdhesion').value) / 100;
+            const receitaBruta = (bathroom + kitchen + living + bedroom) * totalUnidades;
+
+            const tipo = document.getElementById('commissionType').value;
+            const valor = parseFloat(document.getElementById('commissionValue').value) || 0;
+            
+            let comissao = 0;
+            if (tipo === 'percentage') {
+                comissao = receitaBruta * (valor / 100);
+            } else {
+                comissao = valor * totalUnidades;
+            }
+
+            const receitaLiquida = receitaBruta - comissao;
+            const impacto = receitaBruta > 0 ? (comissao / receitaBruta) * 100 : 0;
+
+            const html = `
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div class="text-xs text-gray-600 mb-1">Receita Bruta Estimada</div>
+                    <div class="text-xl text-blue-900">R$ ${formatCurrency(receitaBruta)}</div>
+                </div>
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div class="text-xs text-gray-600 mb-1">Comissão Total</div>
+                    <div class="text-xl text-red-900">- R$ ${formatCurrency(comissao)}</div>
+                </div>
+                <div class="bg-leroy-green/10 border border-leroy-green/30 rounded-lg p-4">
+                    <div class="text-xs text-gray-600 mb-1">Receita Líquida</div>
+                    <div class="text-xl text-leroy-green font-medium">R$ ${formatCurrency(receitaLiquida)}</div>
+                    <div class="text-xs text-gray-600 mt-1">Impacto: ${impacto.toFixed(1)}%</div>
+                </div>
+            `;
+
+            document.getElementById('resultadoComercial').innerHTML = html;
+        }
+
+        // Calcular Resultado
+        function calcularResultado() {
+            const margin = parseFloat(document.getElementById('margin').value) || 7.5;
+            const payback = parseFloat(document.getElementById('payback').value) || 12;
+            
+            // Cálculo simplificado do score
+            const marginScore = (margin / 15) * 25; // 0-25 pontos
+            const paybackScore = Math.max(0, (1 - payback / 36) * 20); // 0-20 pontos
+            const operationalScore = 30; // Fixo para simplificar
+            const strategyScore = 15; // Fixo para simplificar
+            const packageScore = 5; // Fixo
+            const commScore = 5; // Fixo
+            
+            const finalScore = Math.round(marginScore + paybackScore + operationalScore + strategyScore + packageScore + commScore);
+            
+            let decision = '';
+            let color = '';
+            let icon = '';
+            
+            if (finalScore >= 70) {
+                decision = 'GO';
+                color = 'leroy-green';
+                icon = 'check-circle-2';
+            } else if (finalScore >= 50) {
+                decision = 'GO COM RESSALVAS';
+                color = 'leroy-orange';
+                icon = 'alert-circle';
+            } else {
+                decision = 'NO-GO';
+                color = 'red-600';
+                icon = 'x-circle';
+            }
+
+            const html = `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                    <div class="md:col-span-1 flex items-center justify-center">
+                        <div class="relative w-48 h-48">
+                            <svg class="transform -rotate-90 w-48 h-48">
+                                <circle cx="96" cy="96" r="80" stroke="#e5e7eb" stroke-width="12" fill="none" />
+                                <circle cx="96" cy="96" r="80" stroke="#00834c" stroke-width="12" fill="none"
+                                    stroke-dasharray="${(finalScore / 100) * 502.4} 502.4" stroke-linecap="round" />
+                            </svg>
+                            <div class="absolute inset-0 flex items-center justify-center flex-col">
+                                <div class="text-5xl font-bold text-gray-900">${finalScore}</div>
+                                <div class="text-sm text-gray-600">Score Final</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="md:col-span-2 flex items-center justify-center">
+                        <div class="px-8 py-6 rounded-xl flex items-center gap-4 border-2 bg-${color}/10 border-${color}">
+                            <i data-lucide="${icon}" class="w-12 h-12 text-${color}"></i>
+                            <div>
+                                <div class="text-xs text-gray-600 mb-1">Decisão Recomendada</div>
+                                <div class="text-2xl font-medium text-${color}">${decision}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="text-xs text-gray-600 mb-1">Viabilidade Financeira</div>
+                        <div class="text-2xl text-gray-900">${Math.round(marginScore + paybackScore)}</div>
+                    </div>
+                    <div class="bg-leroy-orange/5 border border-leroy-orange/20 rounded-lg p-4">
+                        <div class="text-xs text-gray-600 mb-1">Viabilidade Operacional</div>
+                        <div class="text-2xl text-leroy-orange">${operationalScore}</div>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="text-xs text-gray-600 mb-1">Alinhamento Estratégico</div>
+                        <div class="text-2xl text-gray-900">${strategyScore}</div>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="text-xs text-gray-600 mb-1">Pacotes & Comunicação</div>
+                        <div class="text-2xl text-gray-900">${packageScore + commScore}</div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('resultadoContent').innerHTML = html;
+            document.getElementById('resultadoSection').style.display = 'block';
+            
+            // Scroll suave para resultado
+            setTimeout(() => {
+                document.getElementById('resultadoSection').scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+            
+            lucide.createIcons();
+        }
+
+        // Salvar Análise
+        function salvarAnalise() {
+            alert('Análise salva com sucesso!');
+        }
+    </script>
+</body>
+</html>
