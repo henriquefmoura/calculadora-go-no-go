@@ -11,7 +11,6 @@ import { CommunicationPackages } from './components/CommunicationPackages';
 import { OperationalViability } from './components/OperationalViability';
 import { FinancialViability } from './components/FinancialViability';
 import { RiskAssessment } from './components/RiskAssessment';
-import { StrategySynergy } from './components/StrategySynergy';
 import { GovernanceGates } from './components/GovernanceGates';
 import { DecisionResult } from './components/DecisionResult';
 import { Insights } from './components/Insights';
@@ -78,13 +77,6 @@ export interface Scores {
     operational: number;
     litigationPercentage: number;
   };
-  strategy: {
-    adherence: number;
-    synergy: number;
-    recurrence: number;
-    crossSell: number;
-  };
-}
 
 export default function App() {
   const [projectData, setProjectData] = useState<ProjectData>({
@@ -147,12 +139,7 @@ export default function App() {
       operational: 50,
       litigationPercentage: 0
     },
-    strategy: {
-      adherence: 50,
-      synergy: 50,
-      recurrence: 50,
-      crossSell: 50
-    }
+  
   });
 
   // Calcular receita de reforma
@@ -264,11 +251,6 @@ export default function App() {
         <RiskAssessment 
           scores={scores.risk}
           onChange={(risk) => setScores({ ...scores, risk })}
-        />
-
-        <StrategySynergy 
-          scores={scores.strategy}
-          onChange={(strategy) => setScores({ ...scores, strategy })}
         />
 
         <GovernanceGates 
