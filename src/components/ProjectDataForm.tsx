@@ -12,10 +12,8 @@ export function ProjectDataForm({ data, onChange }: ProjectDataFormProps) {
     onChange({ ...data, [field]: value });
   };
 
-  // Sync units with technical capacity if needed
   React.useEffect(() => {
     if (data.units) {
-      // This will help keep units in sync across components
       const event = new CustomEvent('unitsChanged', { detail: data.units });
       window.dispatchEvent(event);
     }
@@ -30,9 +28,7 @@ export function ProjectDataForm({ data, onChange }: ProjectDataFormProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="lg:col-span-2">
-          <label className="block text-sm text-gray-700 mb-1.5">
-            Nome do Empreendimento
-          </label>
+          <label className="block text-sm text-gray-700 mb-1.5">Nome do Empreendimento</label>
           <input
             type="text"
             value={data.name}
@@ -43,9 +39,7 @@ export function ProjectDataForm({ data, onChange }: ProjectDataFormProps) {
         </div>
 
         <div className="lg:col-span-2">
-          <label className="block text-sm text-gray-700 mb-1.5">
-            Incorporadora
-          </label>
+          <label className="block text-sm text-gray-700 mb-1.5">Incorporadora</label>
           <input
             type="text"
             value={data.incorporadora}
@@ -54,51 +48,47 @@ export function ProjectDataForm({ data, onChange }: ProjectDataFormProps) {
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00834c] focus:border-[#00834c] outline-none"
           />
         </div>
-<div className="lg:col-span-2">
-  <label className="block text-sm text-gray-700 mb-1.5">
-    Nome da Loja
-  </label>
-  <input
-    type="text"
-    value={data.storeName || ''}
-    onChange={(e) => updateField('storeName', e.target.value)}
-    placeholder="Ex: Leroy Merlin Morumbi"
-    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00834c] focus:border-[#00834c] outline-none"
-  />
-</div>
 
-<div className="lg:col-span-1">
-  <label className="block text-sm text-gray-700 mb-1.5">
-    Meses para entrega da chave
-  </label>
-  <input
-    type="number"
-    min={0}
-    value={data.monthsToKey || ''}
-    onChange={(e) => updateField('monthsToKey', e.target.value)}
-    placeholder="Ex: 12"
-    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00834c] focus:border-[#00834c] outline-none"
-  />
-</div>
+        {/* NOVOS CAMPOS */}
+        <div className="lg:col-span-2">
+          <label className="block text-sm text-gray-700 mb-1.5">Nome da Loja</label>
+          <input
+            type="text"
+            value={data.storeName ?? ''}
+            onChange={(e) => updateField('storeName', e.target.value)}
+            placeholder="Ex: Leroy Merlin Morumbi"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00834c] focus:border-[#00834c] outline-none"
+          />
+        </div>
 
-<div className="lg:col-span-1">
-  <label className="block text-sm text-gray-700 mb-1.5">
-    Padrão do apartamento
-  </label>
-  <select
-    value={data.apartmentStandard || 'medio'}
-    onChange={(e) => updateField('apartmentStandard', e.target.value)}
-    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00834c] focus:border-[#00834c] outline-none"
-  >
-    <option value="baixo">Baixo padrão</option>
-    <option value="medio">Médio padrão</option>
-    <option value="alto">Alto padrão</option>
-  </select>
-</div>
         <div className="lg:col-span-1">
-          <label className="block text-sm text-gray-700 mb-1.5">
-            Cidade
-          </label>
+          <label className="block text-sm text-gray-700 mb-1.5">Meses para entrega da chave</label>
+          <input
+            type="number"
+            min={0}
+            value={data.monthsToKey ?? ''}
+            onChange={(e) => updateField('monthsToKey', e.target.value)}
+            placeholder="Ex: 12"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00834c] focus:border-[#00834c] outline-none"
+          />
+        </div>
+
+        <div className="lg:col-span-1">
+          <label className="block text-sm text-gray-700 mb-1.5">Padrão do apartamento</label>
+          <select
+            value={data.apartmentStandard ?? 'medio'}
+            onChange={(e) => updateField('apartmentStandard', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00834c] focus:border-[#00834c] outline-none"
+          >
+            <option value="baixo">Baixo padrão</option>
+            <option value="medio">Médio padrão</option>
+            <option value="alto">Alto padrão</option>
+          </select>
+        </div>
+        {/* FIM NOVOS CAMPOS */}
+
+        <div className="lg:col-span-1">
+          <label className="block text-sm text-gray-700 mb-1.5">Cidade</label>
           <input
             type="text"
             value={data.city}
@@ -109,9 +99,7 @@ export function ProjectDataForm({ data, onChange }: ProjectDataFormProps) {
         </div>
 
         <div className="lg:col-span-1">
-          <label className="block text-sm text-gray-700 mb-1.5">
-            UF
-          </label>
+          <label className="block text-sm text-gray-700 mb-1.5">UF</label>
           <input
             type="text"
             value={data.uf}
@@ -123,9 +111,7 @@ export function ProjectDataForm({ data, onChange }: ProjectDataFormProps) {
         </div>
 
         <div>
-          <label className="block text-sm text-gray-700 mb-1.5">
-            Tipologia
-          </label>
+          <label className="block text-sm text-gray-700 mb-1.5">Tipologia</label>
           <select
             value={data.typology}
             onChange={(e) => updateField('typology', e.target.value)}
@@ -139,9 +125,7 @@ export function ProjectDataForm({ data, onChange }: ProjectDataFormProps) {
         </div>
 
         <div>
-          <label className="block text-sm text-gray-700 mb-1.5">
-            Fase do Projeto
-          </label>
+          <label className="block text-sm text-gray-700 mb-1.5">Fase do Projeto</label>
           <select
             value={data.phase}
             onChange={(e) => updateField('phase', e.target.value)}
@@ -155,9 +139,7 @@ export function ProjectDataForm({ data, onChange }: ProjectDataFormProps) {
         </div>
 
         <div>
-          <label className="block text-sm text-gray-700 mb-1.5">
-            VGV Estimado (R$)
-          </label>
+          <label className="block text-sm text-gray-700 mb-1.5">VGV Estimado (R$)</label>
           <input
             type="text"
             value={data.vgv}
@@ -168,9 +150,7 @@ export function ProjectDataForm({ data, onChange }: ProjectDataFormProps) {
         </div>
 
         <div>
-          <label className="block text-sm text-gray-700 mb-1.5">
-            Número de Unidades
-          </label>
+          <label className="block text-sm text-gray-700 mb-1.5">Número de Unidades</label>
           <input
             type="text"
             value={data.units}
