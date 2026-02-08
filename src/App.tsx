@@ -132,7 +132,7 @@ export default function App() {
       payback: 12,
       cac: 500
     },
-    risk: {
+    risk: hasRisk?: boolean; 
      <div className="lg:col-span-1">
   <label className="block text-sm text-gray-700 mb-1.5">
     Possui risco relevante?
