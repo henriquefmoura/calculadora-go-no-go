@@ -23,6 +23,9 @@ export interface ProjectData {
   city: string;
   vgv: string;
   units?: number;
+  storeName: string;
+monthsToKey: string;
+apartmentStandard: 'baixo' | 'medio' | 'alto';
 }
 
 export interface ReformPackages {
