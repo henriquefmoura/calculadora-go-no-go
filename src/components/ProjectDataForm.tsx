@@ -54,7 +54,47 @@ export function ProjectDataForm({ data, onChange }: ProjectDataFormProps) {
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00834c] focus:border-[#00834c] outline-none"
           />
         </div>
+<div className="lg:col-span-2">
+  <label className="block text-sm text-gray-700 mb-1.5">
+    Nome da Loja
+  </label>
+  <input
+    type="text"
+    value={data.storeName || ''}
+    onChange={(e) => updateField('storeName', e.target.value)}
+    placeholder="Ex: Leroy Merlin Morumbi"
+    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00834c] focus:border-[#00834c] outline-none"
+  />
+</div>
 
+<div className="lg:col-span-1">
+  <label className="block text-sm text-gray-700 mb-1.5">
+    Meses para entrega da chave
+  </label>
+  <input
+    type="number"
+    min={0}
+    value={data.monthsToKey || ''}
+    onChange={(e) => updateField('monthsToKey', e.target.value)}
+    placeholder="Ex: 12"
+    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00834c] focus:border-[#00834c] outline-none"
+  />
+</div>
+
+<div className="lg:col-span-1">
+  <label className="block text-sm text-gray-700 mb-1.5">
+    Padrão do apartamento
+  </label>
+  <select
+    value={data.apartmentStandard || 'medio'}
+    onChange={(e) => updateField('apartmentStandard', e.target.value)}
+    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00834c] focus:border-[#00834c] outline-none"
+  >
+    <option value="baixo">Baixo padrão</option>
+    <option value="medio">Médio padrão</option>
+    <option value="alto">Alto padrão</option>
+  </select>
+</div>
         <div className="lg:col-span-1">
           <label className="block text-sm text-gray-700 mb-1.5">
             Cidade
