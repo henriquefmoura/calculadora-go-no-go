@@ -75,11 +75,8 @@ export interface Scores {
     default: number;
     reputational: number;
     operational: number;
-    litigationPercentage: <div className="lg:col-span-1">
-  <label className="block text-sm text-gray-700 mb-1.5">
-    Percentual de risco (%)
-  </label>
-;
+    litigationPercentage: 2
+
   };
 
 export default function App() {
